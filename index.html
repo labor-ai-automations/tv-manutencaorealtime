@@ -3,195 +3,854 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Manutenção - Fama Flow</title>
-    <!-- Bibliotecas Necessárias -->
+    <title>Centro de Comando - FamaFlow</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --bg-color: #121212;
-            --surface-color: #1E1E1E;
-            --text-main: #FFFFFF;
-            --text-sec: #A8A8A8;
+            --bg-main: #0b0f19;
+            --bg-card: #1a1f2e;
+            --bg-alt: #232a3e;
+            --text-primary: #ffffff;
+            --text-secondary: #a8aec8;
             --danger: #ef4444;
+            --danger-dark: #dc2626;
             --warning: #f59e0b;
+            --warning-dark: #d97706;
             --success: #10b981;
             --info: #3b82f6;
+            --info-dark: #1d4ed8;
+            --neon-red: #ff1744;
+            --neon-yellow: #ffeb3b;
+            --neon-cyan: #00e5ff;
+            --border: #2d3748;
         }
+
         body {
-            margin: 0; padding: 20px; font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color); color: var(--text-main);
-            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-main) 0%, #0f1624 100%);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+
+        /* ===== HEADER / TOPBAR ===== */
         .header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;
-        }
-        .header h1 { margin: 0; font-size: 2.5rem; display: flex; align-items: center; gap: 15px; }
-        .clock { font-size: 2.5rem; font-weight: bold; color: var(--info); }
-        
-        .grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px;
-        }
-        
-        .os-card {
-            background-color: var(--surface-color); border-radius: 12px;
-            padding: 25px; border-left: 10px solid var(--info);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column; gap: 15px;
-        }
-        .os-card.urgente { border-left-color: var(--danger); animation: piscarBorda 2s infinite; }
-        .os-card.parada { border-left-color: var(--danger); }
-        .os-card.planejada { border-left-color: var(--warning); }
-
-        @keyframes piscarBorda {
-            0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
-            50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.8); }
-            100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            align-items: center;
+            padding: 16px 24px;
+            background: rgba(26, 31, 46, 0.8);
+            border-bottom: 2px solid var(--border);
+            backdrop-filter: blur(10px);
+            gap: 20px;
         }
 
-        .os-header { display: flex; justify-content: space-between; font-size: 1.4rem; color: var(--text-sec); font-weight: bold;}
-        .os-title { font-size: 2.2rem; font-weight: 900; margin: 0; line-height: 1.2; color: var(--text-main); }
-        .os-desc { font-size: 1.3rem; color: var(--text-sec); margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        
-        .os-footer { display: flex; justify-content: space-between; align-items: center; font-size: 1.4rem; border-top: 1px solid #333; padding-top: 15px; margin-top: auto;}
-        .badge { padding: 8px 20px; border-radius: 20px; font-weight: 900; font-size: 1.1rem; letter-spacing: 1px; }
-        .bg-danger { background-color: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
-        .bg-warning { background-color: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
-        
-        body.alerta-nova-os { animation: piscarFundo 1s 3; }
-        @keyframes piscarFundo { 0% { background-color: #450a0a; } 100% { background-color: var(--bg-color); } }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--info));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: 'IBM Plex Mono', monospace;
+            letter-spacing: 2px;
+        }
+
+        .header-center {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .metric-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 20px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--info);
+            border-radius: 8px;
+            color: var(--info);
+        }
+
+        .metric-box.danger {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .metric-box.warning {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .clock {
+            font-size: 2.4rem;
+            font-weight: 700;
+            font-family: 'IBM Plex Mono', monospace;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+        }
+
+        .status-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== MAIN GRID LAYOUT ===== */
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 3fr 2fr;
+            grid-template-rows: auto 1fr;
+            gap: 16px;
+            padding: 16px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ZONA 1: O FOGO (Lado Esquerdo - Tall) */
+        .zone-fire {
+            grid-row: 1 / 3;
+            grid-column: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 8px;
+        }
+
+        .zone-fire::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .zone-fire::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .zone-fire::-webkit-scrollbar-thumb {
+            background: var(--danger);
+            border-radius: 3px;
+        }
+
+        .zone-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .zone-header.fire {
+            background: linear-gradient(135deg, var(--neon-red), var(--danger));
+        }
+
+        .zone-header.planned {
+            background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+        }
+
+        .zone-header.prevention {
+            background: linear-gradient(135deg, var(--info), var(--info-dark));
+        }
+
+        .zone-header span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-size: 1.8rem;
+        }
+
+        /* ===== CARDS SISTEMA ===== */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            border-left: 8px solid var(--info);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+            pointer-events: none;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .card.fire {
+            border-left-color: var(--neon-red);
+            background: linear-gradient(135deg, rgba(255, 23, 68, 0.1), rgba(220, 38, 38, 0.05));
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3), inset 0 0 30px rgba(255, 23, 68, 0.1);
+        }
+
+        .card.fire.urgent {
+            animation: pulse-danger 1s infinite;
+        }
+
+        @keyframes pulse-danger {
+            0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3), inset 0 0 30px rgba(255, 23, 68, 0.1); }
+            50% { box-shadow: 0 0 40px rgba(255, 23, 68, 0.8), inset 0 0 30px rgba(255, 23, 68, 0.3); }
+        }
+
+        .card.planned {
+            border-left-color: var(--warning);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+        }
+
+        .card.prevention {
+            border-left-color: var(--success);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
+        }
+
+        .card-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .card-id {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .badge-parada {
+            background: var(--danger);
+            color: white;
+        }
+
+        .badge-risco {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .badge-preventiva {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-infra {
+            background: var(--info);
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            line-height: 1.2;
+            color: var(--text-primary);
+        }
+
+        .fire .card-title {
+            font-size: 2.2rem;
+            color: var(--neon-red);
+            text-shadow: 0 0 20px rgba(255, 23, 68, 0.5);
+        }
+
+        .card-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .fire .card-desc {
+            -webkit-line-clamp: 3;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 1rem;
+        }
+
+        .card-setor {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .card-time {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 700;
+        }
+
+        .fire .card-time {
+            font-size: 1.3rem;
+            color: var(--neon-red);
+        }
+
+        .time-critical {
+            color: var(--neon-red);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== ZONA 2: PLANEJADO (Central - Grid 2 colunas) ===== */
+        .zone-planned {
+            grid-column: 2;
+            grid-row: 1 / 3;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 8px;
+        }
+
+        .zone-planned::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .zone-planned::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .zone-planned::-webkit-scrollbar-thumb {
+            background: var(--warning);
+            border-radius: 3px;
+        }
+
+        .planned-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            flex: 1;
+        }
+
+        /* ===== ZONA 3: PREVENÇÃO (Lado Direito - Stack) ===== */
+        .zone-prevention {
+            grid-column: 3;
+            grid-row: 1 / 3;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 8px;
+        }
+
+        .zone-prevention::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .zone-prevention::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .zone-prevention::-webkit-scrollbar-thumb {
+            background: var(--success);
+            border-radius: 3px;
+        }
+
+        /* ===== CARDS PEQUENOS (para prevention) ===== */
+        .card-small {
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .card-small .card-title {
+            font-size: 1.3rem;
+        }
+
+        .card-small .card-desc {
+            font-size: 0.8rem;
+            -webkit-line-clamp: 2;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+            gap: 16px;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            opacity: 0.3;
+        }
+
+        .empty-state-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* ===== ALERTA GLOBAL ===== */
+        body.alert-fire {
+            animation: alert-flash 0.5s;
+        }
+
+        @keyframes alert-flash {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2) saturate(1.5); }
+        }
+
+        /* ===== RESPONSIVOS ===== */
+        @media (max-width: 1920px) {
+            .container {
+                grid-template-columns: 1.5fr 3fr 1.5fr;
+            }
+        }
+
+        @media (max-width: 1600px) {
+            .container {
+                grid-template-columns: 1fr 2fr 1fr;
+            }
+
+            .card-title {
+                font-size: 1.5rem;
+            }
+
+            .fire .card-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* ===== AUDIO ALERTS ===== */
+        audio {
+            display: none;
+        }
+
+        /* ===== LOADING ===== */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-size: 1.4rem;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 3px solid var(--info);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
 
+    <!-- AUDIO ALERTS -->
+    <audio id="alert-critical" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <audio id="alert-warning" src="https://assets.mixkit.co/active_storage/sfx/2796/2796-preview.mp3" preload="auto"></audio>
+
+    <!-- HEADER -->
     <div class="header">
-        <h1><span class="material-icons" style="font-size: 3.5rem; color: var(--danger);">build</span> Fama Flow - Central de Manutenção</h1>
-        <div class="clock" id="clock">00:00:00</div>
+        <div class="header-left">
+            <span class="material-icons" style="font-size: 2.4rem; color: var(--neon-red);">home_repair_service</span>
+            <div class="header-logo">FAMA CMD</div>
+        </div>
+        <div class="header-center">
+            <div class="metric-box danger">
+                <span class="material-icons">error_circle</span>
+                <span>PARADAS: <span class="metric-value" id="count-stopped">0</span></span>
+            </div>
+            <div class="metric-box warning">
+                <span class="material-icons">warning_circle</span>
+                <span>RISCO: <span class="metric-value" id="count-risk">0</span></span>
+            </div>
+            <div class="metric-box">
+                <span class="material-icons">pending_actions</span>
+                <span>PENDENTES: <span class="metric-value" id="count-pending">0</span></span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="clock" id="clock">00:00:00</div>
+            <div class="status-indicator"></div>
+        </div>
     </div>
 
-    <div class="grid" id="os-container">
-        <h2 style="color: var(--text-sec); text-align: center; width: 100%; grid-column: 1 / -1;">Conectando ao servidor...</h2>
-    </div>
+    <!-- MAIN GRID -->
+    <div class="container">
+        <!-- ZONA 1: O FOGO -->
+        <div class="zone-fire">
+            <div class="zone-header fire">
+                <span class="material-icons">local_fire_department</span>
+                🚨 CRÍTICO
+            </div>
+            <div id="fire-container"></div>
+        </div>
 
-    <!-- Som de notificação padrão HTML5 -->
-    <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+        <!-- ZONA 2: PLANEJADO -->
+        <div class="zone-planned">
+            <div class="zone-header planned">
+                <span class="material-icons">engineering</span>
+                ⚙️ PLANEJADO
+            </div>
+            <div class="planned-grid" id="planned-container"></div>
+        </div>
+
+        <!-- ZONA 3: PREVENÇÃO -->
+        <div class="zone-prevention">
+            <div class="zone-header prevention">
+                <span class="material-icons">shield_alert</span>
+                🛡️ PREVENTIVA
+            </div>
+            <div id="prevention-container"></div>
+        </div>
+    </div>
 
     <script>
-// 1. Configuração do Supabase (Usando supabaseClient para evitar conflito)
+        // ===== CONFIGURAÇÃO SUPABASE =====
         const SUPABASE_URL = 'https://flegnghsopbrulnnpuvz.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsZWduZ2hzb3BicnVsbm5wdXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDc2MjMsImV4cCI6MjA3ODMyMzYyM30.oZN5gJyNemgYT8nKsXwK9y8cYY_SjLR-sfMqZeaOdQ4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Atualiza relógio da TV
+        // ===== STATE =====
+        let requestsData = [];
+        let lastAlertTime = 0;
+
+        // ===== CLOCK =====
         setInterval(() => {
-            document.getElementById('clock').textContent = new Date().toLocaleTimeString('pt-BR');
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
         }, 1000);
 
-        // 2. Buscar Dados Iniciais
-        async function loadActiveRequests() {
-            const container = document.getElementById('os-container');
+        // ===== CATEGORIZAÇÃO DE REQUISIÇÕES =====
+        function categorizeRequest(req) {
+            const reqData = req.data || {};
+            const situacao = (reqData.situacao_maquina || '').toLowerCase();
+            const status = req.status;
+
+            // FIRE: Máquinas paradas ou com risco + pending
+            const isCritical = (situacao.includes('parada') || situacao.includes('risco')) && 
+                             (status === 'pending' || status === 'pending_manager_check');
+
+            // PLANNED: Status planned
+            const isPlanned = status === 'planned';
+
+            // PREVENTION: Preventiva ou infraestrutura (independente do status)
+            const isPrevention = situacao.includes('preventiva') || 
+                                situacao.includes('infraestrutura') ||
+                                status === 'executed';
+
+            return { isCritical, isPlanned, isPrevention };
+        }
+
+        // ===== FORMATAÇÃO DE TEMPO =====
+        function formatTime(createdAt) {
+            const data = new Date(createdAt);
+            const agora = new Date();
+            const minutos = Math.floor((agora - data) / 60000);
             
-            // Busca requisições que não foram executadas nem rejeitadas
+            if (minutos < 60) return `${minutos}m`;
+            const horas = Math.floor(minutos / 60);
+            return `${horas}h ${minutos % 60}m`;
+        }
+
+        // ===== RENDER DE CARD =====
+        function createCard(req, type) {
+            const reqData = req.data || {};
+            const maquina = reqData.equipamento || 'N/A';
+            const setor = reqData.setor === 'Outra' ? reqData.setor_especificado : reqData.setor;
+            const descricao = reqData.descricao_problema || 'Sem descrição';
+            const situacao = reqData.situacao_maquina || '';
+            const tempoAberto = formatTime(req.created_at);
+
+            let badgeClass = 'badge-infra';
+            let badgeText = 'INFRA';
+
+            if (situacao.includes('parada')) {
+                badgeClass = 'badge-parada';
+                badgeText = '⏹️ PARADA';
+            } else if (situacao.includes('risco')) {
+                badgeClass = 'badge-risco';
+                badgeText = '⚠️ RISCO';
+            } else if (situacao.includes('preventiva')) {
+                badgeClass = 'badge-preventiva';
+                badgeText = '🛡️ PREV';
+            }
+
+            const isUrgent = type === 'fire' && parseInt(tempoAberto) > 60;
+            const cardSize = type === 'prevention' ? 'card-small' : '';
+            const cardClass = type === 'fire' ? 'fire' : type === 'planned' ? 'planned' : 'prevention';
+
+            const card = document.createElement('div');
+            card.className = `card ${cardClass} ${cardSize} ${isUrgent ? 'urgent' : ''}`;
+            card.id = `card-${req.id}`;
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-id">#${req.id.substring(0, 8).toUpperCase()}</div>
+                    <span class="card-badge ${badgeClass}">${badgeText}</span>
+                </div>
+                <h3 class="card-title">${maquina}</h3>
+                <p class="card-desc">${descricao}</p>
+                <div class="card-footer">
+                    <div class="card-setor">${setor}</div>
+                    <div class="card-time ${isUrgent ? 'time-critical' : ''}">
+                        <span class="material-icons" style="font-size: 1.2rem;">schedule</span>
+                        ${tempoAberto}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // ===== ATUALIZAR MÉTRICAS =====
+        function updateMetrics(allRequests) {
+            const stopped = allRequests.filter(r => {
+                const cat = categorizeRequest(r);
+                return cat.isCritical && 
+                       ((r.data?.situacao_maquina || '').toLowerCase().includes('parada'));
+            }).length;
+
+            const risk = allRequests.filter(r => {
+                const cat = categorizeRequest(r);
+                return cat.isCritical && 
+                       ((r.data?.situacao_maquina || '').toLowerCase().includes('risco'));
+            }).length;
+
+            const pending = allRequests.filter(r => 
+                (r.status === 'pending' || r.status === 'pending_manager_check')
+            ).length;
+
+            document.getElementById('count-stopped').textContent = stopped;
+            document.getElementById('count-risk').textContent = risk;
+            document.getElementById('count-pending').textContent = pending;
+        }
+
+        // ===== RENDERIZAR LAYOUT =====
+        function renderLayout(requests) {
+            const fireContainer = document.getElementById('fire-container');
+            const plannedContainer = document.getElementById('planned-container');
+            const preventionContainer = document.getElementById('prevention-container');
+
+            fireContainer.innerHTML = '';
+            plannedContainer.innerHTML = '';
+            preventionContainer.innerHTML = '';
+
+            const fire = [];
+            const planned = [];
+            const prevention = [];
+
+            // Filtrar e categorizar
+            requests.forEach(req => {
+                if (req.type !== 'maintenance') return;
+
+                const cat = categorizeRequest(req);
+                if (cat.isCritical) fire.push(req);
+                else if (cat.isPlanned) planned.push(req);
+                else if (cat.isPrevention) prevention.push(req);
+            });
+
+            // FIRE: Ordenar por tempo (mais antigo primeiro)
+            fire.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            fire.forEach(req => {
+                fireContainer.appendChild(createCard(req, 'fire'));
+            });
+
+            if (fire.length === 0) {
+                fireContainer.innerHTML = `
+                    <div class="empty-state" style="gap: 8px;">
+                        <div class="empty-state-icon">✅</div>
+                        <div class="empty-state-text">Sem Críticos!</div>
+                    </div>
+                `;
+            }
+
+            // PLANNED: Grid 2 colunas
+            planned.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            planned.forEach(req => {
+                plannedContainer.appendChild(createCard(req, 'planned'));
+            });
+
+            if (planned.length === 0) {
+                plannedContainer.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon">⚙️</div>
+                        <div class="empty-state-text">Nada Planejado</div>
+                    </div>
+                `;
+            }
+
+            // PREVENTION: Stack
+            prevention.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            prevention.forEach(req => {
+                preventionContainer.appendChild(createCard(req, 'prevention'));
+            });
+
+            if (prevention.length === 0) {
+                preventionContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🛡️</div>
+                        <div class="empty-state-text">Tudo Limpo</div>
+                    </div>
+                `;
+            }
+
+            updateMetrics(requests);
+        }
+
+        // ===== TOCAR ALERTA =====
+        function triggerAlert(type = 'critical') {
+            const now = Date.now();
+            if (now - lastAlertTime < 5000) return; // Throttle 5s
+            lastAlertTime = now;
+
+            const audio = type === 'critical' 
+                ? document.getElementById('alert-critical')
+                : document.getElementById('alert-warning');
+            
+            audio.play().catch(() => {});
+            document.body.classList.add('alert-fire');
+            setTimeout(() => document.body.classList.remove('alert-fire'), 500);
+        }
+
+        // ===== CARREGAR REQUISIÇÕES =====
+        async function loadRequests() {
             const { data, error } = await supabaseClient
                 .from('requests')
                 .select('*')
                 .eq('type', 'maintenance')
                 .in('status', ['pending', 'pending_manager_check', 'planned'])
-                .order('created_at', { ascending: true }); // Mais antigas primeiro
+                .order('created_at', { ascending: true });
 
             if (error) {
-                container.innerHTML = `<h2 style="color: var(--danger); text-align: center; grid-column: 1 / -1;">Erro ao carregar dados.</h2>`;
+                console.error('Erro:', error);
                 return;
             }
 
-            if (data.length === 0) {
-                container.innerHTML = `
-                    <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh;">
-                        <span class="material-icons" style="font-size: 100px; color: var(--success); margin-bottom: 20px;">check_circle</span>
-                        <h1 style="color: var(--success); font-size: 3rem; margin: 0;">Nenhuma OS Pendente</h1>
-                        <p style="color: var(--text-sec); font-size: 1.5rem;">Fábrica Operando 100%</p>
-                    </div>`;
-                return;
-            }
-
-            renderCards(data);
+            requestsData = data || [];
+            renderLayout(requestsData);
         }
 
-        // 3. Renderizar os Cards na Tela
-        function renderCards(requests) {
-            const container = document.getElementById('os-container');
-            let html = '';
-
-            requests.forEach(req => {
-                const reqData = req.data || {};
-                const maquina = reqData.equipamento || 'Equipamento não informado';
-                const setor = reqData.setor === 'Outra' ? reqData.setor_especificado : reqData.setor;
-                const situacao = reqData.situacao_maquina || '';
-                
-                // Calcula tempo aberto
-                const dataAbertura = new Date(req.created_at);
-                const minutosAberto = Math.floor((new Date() - dataAbertura) / 60000);
-                let tempoStr = minutosAberto > 60 ? `${Math.floor(minutosAberto/60)}h ${minutosAberto%60}m` : `${minutosAberto} min`;
-
-                // Classes CSS condicionais
-                let cardClass = 'os-card';
-                let badgeClass = 'bg-warning';
-                
-                if (situacao.includes('parada') || situacao.includes('risco')) {
-                    cardClass += ' parada urgente';
-                    badgeClass = 'bg-danger';
-                } else if (req.status === 'planned') {
-                    cardClass += ' planejada';
-                }
-
-                html += `
-                    <div class="${cardClass}" id="os-${req.id}">
-                        <div class="os-header">
-                            <span>#${req.id.substring(0,6).toUpperCase()}</span>
-                            <span>${setor}</span>
-                        </div>
-                        <h3 class="os-title">${maquina}</h3>
-                        <p class="os-desc">${reqData.descricao_problema || 'Sem descrição'}</p>
-                        <div class="os-footer">
-                            <span class="badge ${badgeClass}">${situacao.toUpperCase()}</span>
-                            <span style="display:flex; align-items:center; gap:8px; font-weight: bold;">
-                                <span class="material-icons">timer</span> ${tempoStr}
-                            </span>
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        // 4. Configurar WebSockets (Atualização em Tempo Real)
+        // ===== WEBSOCKET REALTIME =====
         function setupRealtime() {
             supabaseClient.channel('public:requests')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, payload => {
-                    const req = payload.new;
-                    
-                    if (req && req.type === 'maintenance') {
-                        if (payload.eventType === 'INSERT') {
-                            tocarAlerta();
+                .on('postgres_changes', 
+                    { event: '*', schema: 'public', table: 'requests' }, 
+                    (payload) => {
+                        if (payload.new?.type === 'maintenance') {
+                            if (payload.eventType === 'INSERT') {
+                                const cat = categorizeRequest(payload.new);
+                                if (cat.isCritical) {
+                                    triggerAlert('critical');
+                                } else if (cat.isPlanned) {
+                                    triggerAlert('warning');
+                                }
+                            }
+                            loadRequests();
                         }
-                        loadActiveRequests();
                     }
-                })
+                )
                 .subscribe();
         }
 
-        function tocarAlerta() {
-            const audio = document.getElementById('alert-sound');
-            audio.play().catch(e => console.log("Áudio bloqueado pelo navegador."));
-            document.body.classList.add('alerta-nova-os');
-            setTimeout(() => document.body.classList.remove('alerta-nova-os'), 3000);
-        }
-
-        setInterval(loadActiveRequests, 60000);
-        loadActiveRequests();
+        // ===== INICIALIZAÇÃO =====
+        loadRequests();
         setupRealtime();
+        setInterval(loadRequests, 120000); // Atualizar a cada 2 minutos
     </script>
+
 </body>
 </html>
