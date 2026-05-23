@@ -78,23 +78,27 @@
     <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <script>
+// 1. Configuração do Supabase (Usando supabaseClient para evitar conflito)
         const SUPABASE_URL = 'https://flegnghsopbrulnnpuvz.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsZWduZ2hzb3BicnVsbm5wdXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDc2MjMsImV4cCI6MjA3ODMyMzYyM30.oZN5gJyNemgYT8nKsXwK9y8cYY_SjLR-sfMqZeaOdQ4';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // Atualiza relógio da TV
         setInterval(() => {
             document.getElementById('clock').textContent = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
 
+        // 2. Buscar Dados Iniciais
         async function loadActiveRequests() {
             const container = document.getElementById('os-container');
             
-            const { data, error } = await supabase
+            // Busca requisições que não foram executadas nem rejeitadas
+            const { data, error } = await supabaseClient
                 .from('requests')
                 .select('*')
                 .eq('type', 'maintenance')
                 .in('status', ['pending', 'pending_manager_check', 'planned'])
-                .order('created_at', { ascending: true });
+                .order('created_at', { ascending: true }); // Mais antigas primeiro
 
             if (error) {
                 container.innerHTML = `<h2 style="color: var(--danger); text-align: center; grid-column: 1 / -1;">Erro ao carregar dados.</h2>`;
@@ -114,6 +118,7 @@
             renderCards(data);
         }
 
+        // 3. Renderizar os Cards na Tela
         function renderCards(requests) {
             const container = document.getElementById('os-container');
             let html = '';
@@ -124,10 +129,12 @@
                 const setor = reqData.setor === 'Outra' ? reqData.setor_especificado : reqData.setor;
                 const situacao = reqData.situacao_maquina || '';
                 
+                // Calcula tempo aberto
                 const dataAbertura = new Date(req.created_at);
                 const minutosAberto = Math.floor((new Date() - dataAbertura) / 60000);
                 let tempoStr = minutosAberto > 60 ? `${Math.floor(minutosAberto/60)}h ${minutosAberto%60}m` : `${minutosAberto} min`;
 
+                // Classes CSS condicionais
                 let cardClass = 'os-card';
                 let badgeClass = 'bg-warning';
                 
@@ -159,10 +166,12 @@
             container.innerHTML = html;
         }
 
+        // 4. Configurar WebSockets (Atualização em Tempo Real)
         function setupRealtime() {
-            supabase.channel('public:requests')
+            supabaseClient.channel('public:requests')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, payload => {
                     const req = payload.new;
+                    
                     if (req && req.type === 'maintenance') {
                         if (payload.eventType === 'INSERT') {
                             tocarAlerta();
@@ -175,7 +184,7 @@
 
         function tocarAlerta() {
             const audio = document.getElementById('alert-sound');
-            audio.play().catch(e => console.log("Áudio bloqueado pelo navegador. O usuário precisa interagir com a tela uma vez."));
+            audio.play().catch(e => console.log("Áudio bloqueado pelo navegador."));
             document.body.classList.add('alerta-nova-os');
             setTimeout(() => document.body.classList.remove('alerta-nova-os'), 3000);
         }
